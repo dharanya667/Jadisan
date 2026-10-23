@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JadiSan — Application Documentation & File-by-File Reference (A to Z)</title>
+<style>
+  @page {
+    size: A4;
+    margin: 20mm 15mm 20mm 15mm;
+    @bottom-right {
+      content: counter(page);
+    }
+  }
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.6;
+    font-size: 11pt;
+    background: #ffffff;
+    padding: 0;
+    margin: 0;
+  }
+  h1 {
+    color: #0f172a;
+    font-size: 22pt;
+    border-bottom: 3px solid #14b8a6;
+    padding-bottom: 8px;
+    margin-top: 0;
+    margin-bottom: 12px;
+  }
+  h2 {
+    color: #0d9488;
+    font-size: 16pt;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 6px;
+    margin-top: 24px;
+    margin-bottom: 12px;
+    page-break-after: avoid;
+  }
+  h3 {
+    color: #1e293b;
+    font-size: 13pt;
+    margin-top: 18px;
+    margin-bottom: 8px;
+    page-break-after: avoid;
+  }
+  p, li {
+    color: #334155;
+    font-size: 10.5pt;
+  }
+  code {
+    font-family: 'Consolas', 'Courier New', monospace;
+    background-color: #f1f5f9;
+    color: #0f766e;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 9.5pt;
+  }
+  pre {
+    background-color: #0f172a;
+    color: #f8fafc;
+    padding: 12px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 9pt;
+    line-height: 1.45;
+    page-break-inside: avoid;
+  }
+  pre code {
+    background-color: transparent;
+    color: inherit;
+    padding: 0;
+  }
+  blockquote {
+    border-left: 4px solid #14b8a6;
+    background-color: #f0fdfa;
+    margin: 12px 0;
+    padding: 8px 16px;
+    color: #0f766e;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 10pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 8px 12px;
+    text-align: left;
+  }
+  th {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 600;
+  }
+  tr:nth-child(even) {
+    background-color: #f8fafc;
+  }
+  hr {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 20px 0;
+  }
+</style>
+</head>
+<body>
+<h1 id="jadisan-comprehensive-application-documentation-file-by-file-reference-a-to-z">JadiSan — Comprehensive Application Documentation &amp; File-by-File Reference (A to Z)</h1>
+<p><strong>Application Name:</strong> JadiSan (Voice-Based Civic Grievance Reporting System)<br />
+<strong>Developers:</strong> Team ByteCraft, Panimalar Engineering College<br />
+<strong>Target Platform:</strong> WhatsApp (via Twilio Sandbox), FastAPI Backend, Google Cloud Firestore, Admin SPA Dashboard  </p>
+<hr />
+<h2 id="1-executive-summary-architecture-overview">1. Executive Summary &amp; Architecture Overview</h2>
+<p><strong>JadiSan</strong> is an intelligent, voice-first civic grievance reporting platform designed to eliminate technological and linguistic barriers for citizens reporting municipal issues (e.g., potholes, water leaks, garbage overflow, broken streetlights, sewage backup). Citizens simply send a voice note in their native language (e.g., Tamil, Hindi, English) via WhatsApp.</p>
+<h3 id="system-architecture-flow">System Architecture Flow</h3>
+<pre><code>┌─────────────────┐       ┌─────────────────┐       ┌────────────────────────┐
+│  Citizen Voice  │ ────&gt; │ Twilio WhatsApp │ ────&gt; │ FastAPI /webhook       │
+│  (WhatsApp)     │       │ Sandbox         │       │ (Async Background Task)│
+└─────────────────┘       └─────────────────┘       └───────────┬────────────┘
+                                                                │
+                                                                ▼
+┌─────────────────┐       ┌─────────────────┐       ┌────────────────────────┐
+│ Firestore DB    │ &lt;──── │ Nominatim       │ &lt;──── │ Gemini 2.5 Flash /     │
+│ (Grievance Store│       │ (Geocoding)     │       │ OpenAI Whisper         │
+└────────┬────────┘       └─────────────────┘       └────────────────────────┘
+         │
+         ├───&gt; Admin SPA Dashboard (Real-time Live Table + Leaflet Interactive Map)
+         └───&gt; APScheduler Escalation Engine (Hourly: Ward ➔ Zone ➔ District ➔ Commissioner)
+</code></pre>
+<h3 id="end-to-end-pipeline">End-to-End Pipeline</h3>
+<ol>
+<li><strong>Voice Input Ingestion:</strong> Twilio webhook receives voice message (OGG/WAV) or text.</li>
+<li><strong>Local AI Transcription:</strong> OpenAI Whisper model (<code>small</code>/<code>base</code>) transcribes multilingual audio locally without cloud API costs or privacy leaks.</li>
+<li><strong>LLM Classification &amp; Duplicate Detection:</strong> Google Gemini 2.5 Flash classifies category and severity, extracts location text, generates a single-sentence English summary, and compares against recent Firestore entries for semantic duplicate detection.</li>
+<li><strong>Geocoding:</strong> Nominatim (OpenStreetMap) converts text locations into precise latitude and longitude coordinates (with fallback to native WhatsApp GPS pins).</li>
+<li><strong>Database &amp; Escalation:</strong> Firestore logs the structured grievance. If unresolved, APScheduler automatically escalates the grievance through official tiers (<code>Ward</code> ➔ <code>Zone</code> ➔ <code>District</code> ➔ <code>Commissioner</code>).</li>
+<li><strong>Automated Notification:</strong> Twilio sends a formatted WhatsApp confirmation back to the citizen with a tracking Reference ID (e.g., <code>JDS-20260904-0001</code>).</li>
+</ol>
+<hr />
+<h2 id="2-comprehensive-a-to-z-file-index-reference">2. Comprehensive A to Z File Index &amp; Reference</h2>
+<p>The codebase consists of <strong>20 files</strong> across root, backend, and dashboard modules. Below is the exhaustive reference listed in <strong>strict alphabetical order from A to Z</strong>.</p>
+<hr />
+<h3 id="file-1-envexample">File 1: <code>.env.example</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/.env.example</code></li>
+<li><strong>Component:</strong> Environment Configuration Template</li>
+<li><strong>Purpose:</strong> Serves as the blueprint for environment variable initialization across deployment environments.</li>
+<li><strong>Key Variables:</strong></li>
+<li><code>TWILIO_ACCOUNT_SID</code>: Twilio API Account Identifier.</li>
+<li><code>TWILIO_AUTH_TOKEN</code>: Secret auth token for Twilio REST client authentication.</li>
+<li><code>TWILIO_WHATSAPP_NUMBER</code>: Designated WhatsApp sender number (<code>whatsapp:+14155238886</code>).</li>
+<li><code>GEMINI_API_KEY</code>: API key for Google Generative AI (Gemini 2.5 Flash).</li>
+<li><code>FIREBASE_CREDENTIALS_PATH</code>: Path to Firebase Service Account JSON file.</li>
+<li><code>WHISPER_MODEL</code>: Local Whisper model size (<code>tiny</code>, <code>base</code>, <code>small</code>, <code>medium</code>, <code>large</code>). Default is <code>small</code>.</li>
+<li><code>ESCALATION_HOURS</code>: SLA duration (in hours) before auto-escalation triggers (default: <code>48</code>).</li>
+<li><strong>Interactions:</strong> Loaded by <code>backend/main.py</code> via <code>python-dotenv</code> before module initializations.</li>
+</ul>
+<hr />
+<h3 id="file-2-readmemd">File 2: <code>README.md</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/README.md</code></li>
+<li><strong>Component:</strong> Core Documentation &amp; Onboarding Manual</li>
+<li><strong>Purpose:</strong> Provides comprehensive technical documentation, architecture diagrams, prerequisite tables, setup steps, ngrok webhook configuration guidelines, Firestore schema definitions, API endpoint catalogs, and testing instructions.</li>
+<li><strong>Key Highlights:</strong></li>
+<li>Describes testing pipeline commands using <code>curl</code>.</li>
+<li>Details local development execution instructions via <code>uvicorn main:app --reload</code>.</li>
+</ul>
+<hr />
+<h3 id="file-3-backendanalyzerpy">File 3: <code>backend/analyzer.py</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/backend/analyzer.py</code></li>
+<li><strong>Component:</strong> Artificial Intelligence &amp; Natural Language Processing Engine</li>
+<li><strong>Purpose:</strong> Leverages Google Gemini 2.5 Flash (<code>gemini-3.6-flash</code> API endpoint) to perform intent classification, severity evaluation, location extraction, language detection, and duplicate grievance identification.</li>
+<li><strong>Key Definitions:</strong></li>
+<li>Constants: <code>CATEGORIES</code> (<code>Pothole</code>, <code>Water Leak</code>, <code>Garbage</code>, <code>Broken Streetlight</code>, <code>Sewage</code>, <code>Road Damage</code>, <code>Other</code>), <code>SEVERITIES</code> (<code>Low</code>, <code>Medium</code>, <code>High</code>, <code>Critical</code>), <code>TIERS</code> (<code>Ward</code>, <code>Zone</code>, <code>District</code>, <code>Commissioner</code>).</li>
+<li><code>init_gemini()</code>: Configures <code>google.generativeai</code> with the <code>GEMINI_API_KEY</code>.</li>
+<li><code>_SYSTEM_PROMPT</code>: Directs the model to output strict JSON schema without markdown block code fences.</li>
+<li><code>analyze_complaint(transcript, recent_complaints)</code>: Formats context from up to 50 recent complaints, invokes <code>generate_content_async</code>, strips potential code fences, parses JSON, and enforces schema sanitization fallback.</li>
+<li><strong>Dependencies:</strong> <code>google.generativeai</code>, <code>json</code>, <code>re</code>, <code>logging</code>.</li>
+</ul>
+<hr />
+<h3 id="file-4-backendescalatorpy">File 4: <code>backend/escalator.py</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/backend/escalator.py</code></li>
+<li><strong>Component:</strong> SLA &amp; Tier Escalation Engine</li>
+<li><strong>Purpose:</strong> Manages background time-based grievance escalation schedules and provides manual single/bulk escalation handlers for municipal administrative tiers.</li>
+<li><strong>Key Definitions:</strong></li>
+<li>Constant: <code>TIER_LADDER = ["Ward", "Zone", "District", "Commissioner"]</code>.</li>
+<li><code>next_tier(current_tier)</code>: Returns the next administrative tier or <code>None</code> if at Commissioner.</li>
+<li><code>run_escalation_check()</code>: Queries Firestore for open grievances exceeding <code>ESCALATION_HOURS</code> and promotes them up the tier ladder.</li>
+<li><code>escalate_single(complaint_id)</code>: Manually promotes a specific grievance by document ID.</li>
+<li><code>start_scheduler()</code> &amp; <code>stop_scheduler()</code>: Lifecycle hooks managing <code>AsyncIOScheduler</code> executing hourly cron checks.</li>
+<li><strong>Dependencies:</strong> <code>apscheduler.schedulers.asyncio.AsyncIOScheduler</code>, <code>firestore_client</code>.</li>
+</ul>
+<hr />
+<h3 id="file-5-backendfirestore_clientpy">File 5: <code>backend/firestore_client.py</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/backend/firestore_client.py</code></li>
+<li><strong>Component:</strong> Database Data Access Layer (DAO)</li>
+<li><strong>Purpose:</strong> Encapsulates all read and write interactions with Google Cloud Firestore, including reference ID generation, query filtering, and document updates.</li>
+<li><strong>Key Definitions:</strong></li>
+<li><code>init_firestore()</code>: Initializes <code>firebase_admin</code> certificate credentials.</li>
+<li><code>_generate_reference_id()</code>: Generates sequential daily reference IDs in format <code>JDS-YYYYMMDD-XXXX</code>.</li>
+<li><code>get_recent_complaints(limit)</code>: Retrieves latest grievances for duplicate contextual comparison.</li>
+<li><code>get_all_complaints(...)</code>: Supports multi-parameter filtering (<code>category</code>, <code>severity</code>, <code>status</code>, <code>tier</code>).</li>
+<li><code>create_complaint(data)</code>: Persists new grievance documents into the <code>complaints</code> collection.</li>
+<li><code>increment_affected_count(complaint_id)</code>: Atomically increments complaint impact count when duplicates are detected.</li>
+<li><code>escalate_complaint(complaint_id, new_tier)</code>: Updates tier status and timestamp.</li>
+<li><strong>Dependencies:</strong> <code>firebase_admin</code>, <code>google.cloud.firestore</code>.</li>
+</ul>
+<hr />
+<h3 id="file-6-backendgeocoderpy">File 6: <code>backend/geocoder.py</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/backend/geocoder.py</code></li>
+<li><strong>Component:</strong> Geographical Coordinates Resolver</li>
+<li><strong>Purpose:</strong> Converts free-text location descriptions into exact geographic coordinates <code>(latitude, longitude)</code> using OpenStreetMap's Nominatim API.</li>
+<li><strong>Key Definitions:</strong></li>
+<li><code>_geocoder</code>: Instantiated <code>Nominatim(user_agent="jadisan_civic_app")</code>.</li>
+<li><code>_cache</code>: In-memory dictionary store preventing redundant API requests.</li>
+<li><code>_lock</code>: <code>asyncio.Lock()</code> enforcing Nominatim's strict 1 request/second Terms-of-Service rate limit.</li>
+<li><code>geocode_location(location_text)</code>: Performs rate-limited, country-restricted (<code>country_codes="in"</code>) geocoding wrapped in <code>asyncio.to_thread</code>.</li>
+<li><strong>Dependencies:</strong> <code>geopy.geocoders.Nominatim</code>, <code>asyncio</code>.</li>
+</ul>
+<hr />
+<h3 id="file-7-backendjadisan-2-firebase-adminsdk-fbsvc-a6efc4cd0ejson">File 7: <code>backend/jadisan-2-firebase-adminsdk-fbsvc-a6efc4cd0e.json</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/backend/jadisan-2-firebase-adminsdk-fbsvc-a6efc4cd0e.json</code></li>
+<li><strong>Component:</strong> Firebase Credentials Service Key</li>
+<li><strong>Purpose:</strong> Service Account JSON configuration containing private keys, client email, project ID, and authorization URIs required by <code>firebase-admin</code> SDK for authenticating against Google Cloud Project <code>jadisan-2</code>.</li>
+<li><strong>Security Note:</strong> Confidential authentication file. Must be protected and excluded from version control in production setups.</li>
+</ul>
+<hr />
+<h3 id="file-8-backendmainpy">File 8: <code>backend/main.py</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/backend/main.py</code></li>
+<li><strong>Component:</strong> Application Core &amp; FastAPI Web Webhook Controller</li>
+<li><strong>Purpose:</strong> Serves as the primary entry point for the REST API and Twilio Webhook server. Orchestrates async background processing of voice notes, audio downloading, transcription, analysis, geocoding, database persistence, and WhatsApp response dispatching.</li>
+<li><strong>Key Routes &amp; Functions:</strong></li>
+<li><code>lifespan(app)</code>: Initializes Firestore, Gemini, Whisper model caching, and starts APScheduler on application startup.</li>
+<li><code>POST /webhook</code>: Handles incoming WhatsApp payloads from Twilio, returns instant XML <code>&lt;Response/&gt;</code> to avoid webhook timeouts, and offloads processing to <code>_process_complaint</code>.</li>
+<li><code>_process_complaint(...)</code>: Asynchronous worker downloading audio via Basic Auth, running local Whisper transcription, querying Gemini, geocoding, updating Firestore, and triggering Twilio messaging.</li>
+<li><code>GET /api/complaints</code>: Admin API endpoint serving filtered complaint lists.</li>
+<li><code>POST /api/escalate/all</code> &amp; <code>POST /api/escalate/{id}</code>: Manual escalation endpoints.</li>
+<li><code>GET /</code>: Serves the static single-page admin dashboard HTML interface.</li>
+<li><strong>Dependencies:</strong> <code>fastapi</code>, <code>httpx</code>, <code>tempfile</code>, <code>pathlib</code>, <code>analyzer</code>, <code>escalator</code>, <code>firestore_client</code>, <code>geocoder</code>, <code>transcriber</code>, <code>twilio_client</code>.</li>
+</ul>
+<hr />
+<h3 id="file-9-backendmake_test_audiops1">File 9: <code>backend/make_test_audio.ps1</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/backend/make_test_audio.ps1</code></li>
+<li><strong>Component:</strong> Synthetic Test Audio Generator Script</li>
+<li><strong>Purpose:</strong> Windows PowerShell script using <code>.NET System.Speech.Synthesis</code> engine to generate local synthetic WAV audio files (<code>test_complaint.wav</code>) containing spoken test grievance text for offline transcription verification.</li>
+<li><strong>Commands:</strong> Creates <code>SpeechSynthesizer</code> object, synthesizes spoken grievance text, and writes output to disk.</li>
+</ul>
+<hr />
+<h3 id="file-10-backendquick_testpy">File 10: <code>backend/quick_test.py</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/backend/quick_test.py</code></li>
+<li><strong>Component:</strong> Quick Local Verification Utility</li>
+<li><strong>Purpose:</strong> Minimal test runner script used to verify that the local Whisper model can load correctly and transcribe <code>test_complaint.wav</code> synchronously without spinning up the full FastAPI application stack.</li>
+</ul>
+<hr />
+<h3 id="file-11-backendrequirementstxt">File 11: <code>backend/requirements.txt</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/backend/requirements.txt</code></li>
+<li><strong>Component:</strong> Python Package Dependency Specification</li>
+<li><strong>Purpose:</strong> Enumerates exact version requirements for all runtime backend dependencies.</li>
+<li><strong>Listed Packages:</strong></li>
+<li><code>fastapi==0.115.5</code></li>
+<li><code>uvicorn[standard]==0.32.1</code></li>
+<li><code>python-multipart==0.0.17</code></li>
+<li><code>twilio==9.3.7</code></li>
+<li><code>openai-whisper==20250625</code></li>
+<li><code>ffmpeg-python==0.2.0</code></li>
+<li><code>google-generativeai==0.8.3</code></li>
+<li><code>firebase-admin==6.6.0</code></li>
+<li><code>apscheduler==3.10.4</code></li>
+<li><code>python-dotenv==1.0.1</code></li>
+<li><code>httpx==0.27.2</code></li>
+<li><code>geopy==2.4.1</code></li>
+<li><code>aiofiles==24.1.0</code></li>
+</ul>
+<hr />
+<h3 id="file-12-backendtest_complaintogg">File 12: <code>backend/test_complaint.ogg</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/backend/test_complaint.ogg</code></li>
+<li><strong>Component:</strong> Sample Audio Binary File (Opus/OGG format)</li>
+<li><strong>Purpose:</strong> Represents a sample audio file matching Twilio WhatsApp voice message encodings for testing audio download, temporary file storage, and Whisper transcription pipelines.</li>
+</ul>
+<hr />
+<h3 id="file-13-backendtest_complaintwav">File 13: <code>backend/test_complaint.wav</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/backend/test_complaint.wav</code></li>
+<li><strong>Component:</strong> Sample Audio Binary File (PCM/WAV format)</li>
+<li><strong>Purpose:</strong> High-fidelity uncompressed synthesized audio sample generated by <code>make_test_audio.ps1</code> for local Whisper accuracy testing.</li>
+</ul>
+<hr />
+<h3 id="file-14-backendtest_pipelinepy">File 14: <code>backend/test_pipeline.py</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/backend/test_pipeline.py</code></li>
+<li><strong>Component:</strong> Automated Unit Testing Suite</li>
+<li><strong>Purpose:</strong> Contains unit tests covering individual backend components using <code>unittest</code> and <code>unittest.mock</code>.</li>
+<li><strong>Test Classes:</strong></li>
+<li><code>TestEscalatorTierLadder</code>: Verifies transitions between <code>Ward</code> ➔ <code>Zone</code> ➔ <code>District</code> ➔ <code>Commissioner</code>.</li>
+<li><code>TestGeminiAnalyzer</code>: Mocks Gemini API outputs, testing valid JSON parsing, markdown fence stripping, and fallback mechanisms for invalid categories/severities.</li>
+<li><code>TestGeocoder</code>: Validates input validation, empty string handling, and cache hit efficiency.</li>
+<li><code>TestTwilioClient</code>: Validates message body formatting for new complaints and duplicate issue alerts without invoking external REST calls.</li>
+</ul>
+<hr />
+<h3 id="file-15-backendtest_server_mockpy">File 15: <code>backend/test_server_mock.py</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/backend/test_server_mock.py</code></li>
+<li><strong>Component:</strong> Full End-to-End Integration Test Suite</li>
+<li><strong>Purpose:</strong> Launches the FastAPI application using HTTPX <code>AsyncClient</code> and <code>ASGITransport</code> with all external services (Firestore, Gemini, Twilio, Whisper) fully mocked.</li>
+<li><strong>Key Test Cases:</strong></li>
+<li><code>test_webhook_returns_twiml</code>: Asserts XML HTTP 200 response.</li>
+<li><code>test_health_endpoint</code>: Confirms <code>/api/health</code> returns status <code>ok</code>.</li>
+<li><code>test_complaints_api_returns_list</code>: Verifies API JSON structure.</li>
+<li><code>test_escalate_all_endpoint</code> &amp; <code>test_escalate_single_not_found</code>: Asserts manual escalation behaviors.</li>
+</ul>
+<hr />
+<h3 id="file-16-backendtranscriberpy">File 16: <code>backend/transcriber.py</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/backend/transcriber.py</code></li>
+<li><strong>Component:</strong> Offline Speech-to-Text Transcription Engine</li>
+<li><strong>Purpose:</strong> Wraps local OpenAI Whisper model execution, ensuring model weights are loaded into RAM once at startup and reused across requests.</li>
+<li><strong>Key Definitions:</strong></li>
+<li><code>load_model(model_size)</code>: Module-level singleton loader caching <code>whisper.Whisper</code> instance.</li>
+<li><code>get_model()</code>: Safe getter enforcing model pre-loading checks.</li>
+<li><code>transcribe_audio(audio_path)</code>: Async function delegating <code>model.transcribe()</code> to a worker thread via <code>asyncio.to_thread(..., fp16=False)</code> to prevent event loop freezing on CPU execution.</li>
+<li><strong>Dependencies:</strong> <code>whisper</code>, <code>asyncio</code>, <code>pathlib</code>.</li>
+</ul>
+<hr />
+<h3 id="file-17-backendtwilio_clientpy">File 17: <code>backend/twilio_client.py</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/backend/twilio_client.py</code></li>
+<li><strong>Component:</strong> WhatsApp Outbound Messaging Client</li>
+<li><strong>Purpose:</strong> Constructs rich, formatted WhatsApp confirmation messages featuring category/severity emoji icons and dispatches them to citizens via Twilio REST API.</li>
+<li><strong>Key Functions:</strong></li>
+<li><code>_get_client()</code>: Initializes <code>twilio.rest.Client</code> using environment credentials.</li>
+<li><code>send_complaint_confirmation(...)</code>: Formats distinct WhatsApp messages for standard new complaints vs. duplicate issue notifications (which report updated citizen impact counts).</li>
+<li><strong>Dependencies:</strong> <code>twilio.rest.Client</code>.</li>
+</ul>
+<hr />
+<h3 id="file-18-dashboardappjs">File 18: <code>dashboard/app.js</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/dashboard/app.js</code></li>
+<li><strong>Component:</strong> Frontend Single-Page Application Logic</li>
+<li><strong>Purpose:</strong> Handles administrative UI operations including data fetching from <code>/api/complaints</code>, live dashboard stats calculations, table sorting/filtering, manual single/bulk escalation requests, toast notifications, and Leaflet interactive map rendering.</li>
+<li><strong>Key Functions:</strong></li>
+<li><code>loadComplaints()</code>: Fetches JSON feed and triggers view updates.</li>
+<li><code>startAutoRefresh()</code>: Sets background polling interval (every 30 seconds).</li>
+<li><code>updateStats()</code>: Dynamically calculates metrics (Total, Open, Critical, Today, Escalated).</li>
+<li><code>applyFilters()</code> &amp; <code>sortComplaints()</code>: Multi-column client-side table sorting and filter matching.</li>
+<li><code>initMap()</code> &amp; <code>updateMap()</code>: Renders interactive map pins colored by severity with divIcon styling.</li>
+<li><code>escalateSingle(id)</code> &amp; <code>escalateAll()</code>: Issues POST requests to escalation endpoints with UI feedback.</li>
+<li><strong>Dependencies:</strong> Browser DOM API, Leaflet JavaScript Library (<code>L.map</code>).</li>
+</ul>
+<hr />
+<h3 id="file-19-dashboardindexhtml">File 19: <code>dashboard/index.html</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/dashboard/index.html</code></li>
+<li><strong>Component:</strong> Frontend Admin Interface HTML Layout</li>
+<li><strong>Purpose:</strong> Semantic HTML5 document defining the UI layout for the administrative control panel.</li>
+<li><strong>Key Sections:</strong></li>
+<li><code>&lt;header&gt;</code>: Brand identity, pulse animation auto-refresh indicator, manual refresh button.</li>
+<li><code>.stats-bar</code>: Metric summary cards.</li>
+<li><code>.controls-bar</code>: Tab view switchers (Table View vs. Map View) and filter dropdown selects.</li>
+<li><code>#viewTable</code>: Data table listing complaints with sortable column headers.</li>
+<li><code>#viewMap</code>: Leaflet map container and color-coded severity legend.</li>
+<li><code>#toastContainer</code>: Dynamic notification container.</li>
+<li><strong>External Resources:</strong> Google Fonts (<code>Inter</code>, <code>JetBrains Mono</code>), Leaflet CSS/JS CDN (<code>1.9.4</code>).</li>
+</ul>
+<hr />
+<h3 id="file-20-dashboardstylescss">File 20: <code>dashboard/styles.css</code></h3>
+<ul>
+<li><strong>Location:</strong> <code>file:///c:/Projects/jadisan/dashboard/styles.css</code></li>
+<li><strong>Component:</strong> Modern Dark-Theme Design System</li>
+<li><strong>Purpose:</strong> Provides custom CSS styling featuring dark navy theme <code>#0f172a</code>, teal accents <code>#14b8a6</code>, glassmorphism backdrop blur filters, custom metric card shadows, status badges, Leaflet popup customizations, responsive layouts, and toast animations.</li>
+<li><strong>Key Tokens:</strong></li>
+<li><code>--bg-base: #0f172a</code>, <code>--bg-surface: #1e293b</code>, <code>--accent: #14b8a6</code>.</li>
+<li>Severity Badges: <code>--sev-low: #22c55e</code>, <code>--sev-medium: #eab308</code>, <code>--sev-high: #f97316</code>, <code>--sev-critical: #ef4444</code>.</li>
+<li>Tier Colors: <code>--tier-ward: #60a5fa</code>, <code>--tier-zone: #a78bfa</code>, <code>--tier-district: #fb923c</code>, <code>--tier-commissioner: #f43f5e</code>.</li>
+</ul>
+<hr />
+<h2 id="3-data-schema-integration-reference">3. Data Schema &amp; Integration Reference</h2>
+<h3 id="firestore-collection-complaints">Firestore Collection: <code>complaints</code></h3>
+<pre><code class="language-json">{
+  &quot;reference_id&quot;: &quot;JDS-20260904-0001&quot;,
+  &quot;sender_phone&quot;: &quot;whatsapp:+919876543210&quot;,
+  &quot;transcript&quot;: &quot;அண்ணா நகர் மெயின் ரோட்டில் பெரிய சாக்கடை அடைப்பு ஏற்பட்டு கழிவு நீர் தெருவில் ஓடுகிறது&quot;,
+  &quot;summary&quot;: &quot;Major sewage blockage on Anna Nagar Main Road causing overflow on the street.&quot;,
+  &quot;category&quot;: &quot;Sewage&quot;,
+  &quot;severity&quot;: &quot;High&quot;,
+  &quot;location_text&quot;: &quot;Anna Nagar Main Road&quot;,
+  &quot;latitude&quot;: 13.0850,
+  &quot;longitude&quot;: 80.2100,
+  &quot;status&quot;: &quot;open&quot;,
+  &quot;tier&quot;: &quot;Ward&quot;,
+  &quot;is_duplicate&quot;: false,
+  &quot;duplicate_of_id&quot;: null,
+  &quot;affected_count&quot;: 1,
+  &quot;language_detected&quot;: &quot;Tamil&quot;,
+  &quot;created_at&quot;: &quot;2026-09-04T12:00:00Z&quot;,
+  &quot;updated_at&quot;: &quot;2026-09-04T12:00:00Z&quot;
+}
+</code></pre>
+<hr />
+<h2 id="4-setup-deployment-execution-guide">4. Setup, Deployment &amp; Execution Guide</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li>Python 3.11+</li>
+<li>FFmpeg (installed and added to system PATH for audio decoding)</li>
+<li>Firebase Cloud Firestore account</li>
+<li>Twilio WhatsApp Sandbox credentials</li>
+</ul>
+<h3 id="installation-steps">Installation Steps</h3>
+<pre><code class="language-bash"># 1. Clone repository &amp; change directory
+cd c:/Projects/jadisan
+
+# 2. Setup virtual environment &amp; dependencies
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+
+# 3. Configure environment variables
+cp ../.env.example .env
+# Edit .env with your real credentials (API keys, serviceAccountKey.json)
+
+# 4. Launch FastAPI development server
+uvicorn main:app --reload --port 8000
+
+# 5. Access Admin Dashboard in Browser
+# http://localhost:8000/
+</code></pre>
+<hr />
+<p><em>Documentation compiled for JadiSan Application — Team ByteCraft, Panimalar Engineering College.</em></p>
+</body>
+</html>

@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JadiSan — Zone Officer Civic Grievance System</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       SLIDE 1 — ACCOUNT / LOGIN SCREEN
+       ========================================================================== -->
+  <!-- ==========================================================================
+       SLIDE 1 — MULTI-ROLE ACCOUNT / LOGIN SCREEN
+       ========================================================================== -->
+  <section class="slide-screen active" id="slide1">
+    <div class="auth-wrapper">
+      <div class="auth-card" style="max-width: 480px;">
+        <div class="auth-brand">
+          <div class="auth-logo"><i class="bi bi-shield-check"></i></div>
+          <span class="auth-title" style="font-size: 22px; color: var(--text-main);">JadiSan</span>
+        </div>
+
+        <h1 class="auth-title">Welcome to JadiSan</h1>
+        <p class="auth-subtitle">Select your Login Authority & enter credentials</p>
+
+        <form class="auth-form" id="loginForm">
+          <div class="form-group">
+            <label class="form-label" for="loginRole">Select Login Role</label>
+            <select class="form-input" id="loginRole" style="font-weight: 700; cursor: pointer;">
+              <option value="Zone Officer">🛡️ Zone Officer (All Complaints & Assignment)</option>
+              <option value="Road Department">🛣️ Road Department Officer</option>
+              <option value="Water Department">💧 Water Department Officer</option>
+              <option value="Sewage Department">🚰 Sewage Department Officer</option>
+              <option value="Sanitation Department">🧹 Sanitation Department Officer</option>
+              <option value="Electricity Department">⚡ Electricity Department Officer</option>
+              <option value="Ward Officer">🏙️ Ward Officer (Ward 104)</option>
+              <option value="District Officer">🏛️ District Magistrate / Officer</option>
+              <option value="Municipal Commissioner">👑 Municipal Commissioner</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="loginName">Name</label>
+            <input type="text" class="form-input" id="loginName" placeholder="Enter Officer Name" value="Arun Kumar" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">Password</label>
+            <input type="password" class="form-input" id="loginPassword" placeholder="Enter Password" value="password123" required>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;">
+            <button type="submit" class="btn-primary" id="btnSubmitLogin">
+              <i class="bi bi-box-arrow-in-right"></i> Login to Portal
+            </button>
+            <button type="button" class="btn-outline" id="btnGoToSlide2">
+              <i class="bi bi-person-plus-fill"></i> Create Officer Account
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SLIDE 2 — CREATE OFFICER ACCOUNT
+       ========================================================================== -->
+  <section class="slide-screen" id="slide2">
+    <div class="auth-wrapper">
+      <div class="auth-card" style="max-width: 480px;">
+        <div class="auth-brand">
+          <div class="auth-logo"><i class="bi bi-shield-check"></i></div>
+          <span class="auth-title" style="font-size: 20px;">JadiSan</span>
+        </div>
+
+        <h1 class="auth-title">Create Officer Account</h1>
+        <p class="auth-subtitle">Register credentials for Zone, Department, Ward, or Commissioner</p>
+
+        <form class="auth-form" id="createAccountForm">
+          <div class="form-group">
+            <label class="form-label" for="regRole">Role Authority</label>
+            <select class="form-input" id="regRole" style="font-weight: 700;" required>
+              <option value="Zone Officer">Zone Officer</option>
+              <option value="Road Department">Road Department Officer</option>
+              <option value="Water Department">Water Department Officer</option>
+              <option value="Sewage Department">Sewage Department Officer</option>
+              <option value="Sanitation Department">Sanitation Department Officer</option>
+              <option value="Electricity Department">Electricity Department Officer</option>
+              <option value="Ward Officer">Ward Officer</option>
+              <option value="District Officer">District Magistrate / Officer</option>
+              <option value="Municipal Commissioner">Municipal Commissioner</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="regName">Name</label>
+            <input type="text" class="form-input" id="regName" placeholder="e.g. Ramesh Varma" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="regZone">Department / Zone Designation</label>
+            <input type="text" class="form-input" id="regZone" placeholder="e.g. Zone 5 Officer / Water Dept Head" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="regPassword">Password</label>
+            <input type="password" class="form-input" id="regPassword" placeholder="Create Password" required>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 8px;">
+            <button type="button" class="btn-outline" onclick="goToSlide(1)" style="flex: 1;">
+              <i class="bi bi-arrow-left"></i> Back
+            </button>
+            <button type="submit" class="btn-primary" id="btnCreateAccountSubmit" style="flex: 2;">
+              <i class="bi bi-check-circle-fill"></i> Register Account
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SLIDE 3 — MAIN ZONE OFFICER DASHBOARD
+       ========================================================================== -->
+  <section class="slide-screen" id="slide3">
+    <div class="dashboard-layout">
+      <!-- Minimal Left Sidebar (4 items only) -->
+      <aside class="sidebar">
+        <div class="sidebar-top">
+          <div class="sidebar-brand">
+            <div class="sidebar-logo"><i class="bi bi-shield-check"></i></div>
+            <span class="sidebar-title">JadiSan</span>
+          </div>
+
+          <nav class="sidebar-nav">
+            <a href="#dashboard" class="nav-item active" data-page="Dashboard">
+              <i class="bi bi-house-door-fill"></i>
+              <span>Dashboard</span>
+            </a>
+            <a href="#complaints" class="nav-item" data-page="Complaints">
+              <i class="bi bi-card-checklist"></i>
+              <span>Complaints</span>
+            </a>
+            <a href="#map" class="nav-item" data-page="Map">
+              <i class="bi bi-map-fill"></i>
+              <span>Map</span>
+            </a>
+            <a href="#analytics" class="nav-item" data-page="Analytics">
+              <i class="bi bi-bar-chart-fill"></i>
+              <span>Analytics</span>
+            </a>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- Main Application Area -->
+      <main class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+          <div class="header-left" style="display: flex; align-items: center; gap: 16px;">
+            <span>JadiSan Grievance Portal</span>
+
+            <!-- Role Badge -->
+            <span id="activeRoleBadge" class="badge" style="background: var(--primary-purple-light); color: var(--primary-purple); border: 1px solid var(--border-color); font-weight: 800; font-size: 12px; padding: 6px 12px;">
+              <i class="bi bi-shield-lock-fill"></i> <span id="headerRoleBadgeText">Zone Officer View</span>
+            </span>
+          </div>
+
+          <!-- Top Right Profile & Dropdown -->
+          <div class="profile-container">
+            <div class="profile-trigger" id="profileTrigger">
+              <div class="profile-avatar" id="headerAvatar">AK</div>
+              <span class="profile-name" id="headerZoneOfficerName">Arun Kumar</span>
+              <i class="bi bi-chevron-down" style="font-size: 11px; opacity: 0.7;"></i>
+            </div>
+
+            <!-- Profile Dropdown -->
+            <div class="profile-dropdown" id="profileDropdown">
+              <div class="dropdown-item" id="dropdownChangeOfficer">
+                <i class="bi bi-arrow-repeat"></i>
+                <span>Switch Officer Account</span>
+              </div>
+              <div class="dropdown-item danger" id="dropdownLogout">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Dynamic Page Container -->
+        <div class="page-container">
+
+          <!-- PAGE 1: DASHBOARD (REAL PRODUCT COMMAND CENTER) -->
+          <div class="page-view active" id="pageDashboard">
+            <!-- Dynamic Role Welcome Banner -->
+            <div id="roleWelcomeBanner" style="padding: 16px 20px; background: linear-gradient(135deg, var(--primary-purple-light), #f8f6fc); border: 1px solid var(--border-color); border-radius: var(--radius-lg); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+              <div>
+                <h2 style="font-size: 18px; font-weight: 800; color: var(--text-main); margin-bottom: 4px;" id="welcomeBannerTitle">Welcome back, Zone Officer!</h2>
+                <p style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin: 0;" id="welcomeBannerDesc">You are viewing all active civic complaints across Zone 5. Assign and forward complaints to department engineers.</p>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="badge badge-open" id="slaTargetBadge" style="font-size: 12px; padding: 6px 12px;"><i class="bi bi-clock-history"></i> SLA Target: 24 Hours</span>
+              </div>
+            </div>
+
+            <!-- Top 4 KPI Metrics Cards -->
+            <div class="stats-grid" style="margin-bottom: 24px;">
+              <!-- Card 1: Total Problems -->
+              <div class="stat-card">
+                <div class="stat-header">
+                  <span class="stat-title" id="card1Title">Total Complaints</span>
+                  <div class="stat-icon blue"><i class="bi bi-inbox-fill"></i></div>
+                </div>
+                <div class="stat-value" id="statTotal">0</div>
+                <div style="font-size: 11.5px; color: var(--text-muted); font-weight: 600; margin-top: 4px;">Active in scope</div>
+              </div>
+
+              <!-- Card 2: Opened Problems -->
+              <div class="stat-card">
+                <div class="stat-header">
+                  <span class="stat-title" id="card2Title">Pending Action</span>
+                  <div class="stat-icon orange"><i class="bi bi-exclamation-circle-fill"></i></div>
+                </div>
+                <div class="stat-value" id="statOpened">0</div>
+                <div style="font-size: 11.5px; color: #d97706; font-weight: 700; margin-top: 4px;">Requires field dispatch</div>
+              </div>
+
+              <!-- Card 3: Critical Problems -->
+              <div class="stat-card">
+                <div class="stat-header">
+                  <span class="stat-title" id="card3Title">SLA Risk / Critical</span>
+                  <div class="stat-icon red"><i class="bi bi-radioactive"></i></div>
+                </div>
+                <div class="stat-value" id="statCritical">0</div>
+                <div style="font-size: 11.5px; color: #dc2626; font-weight: 700; margin-top: 4px;">High priority attention</div>
+              </div>
+
+              <!-- Card 4: Resolved Problems -->
+              <div class="stat-card">
+                <div class="stat-header">
+                  <span class="stat-title" id="card4Title">Resolved & Closed</span>
+                  <div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
+                </div>
+                <div class="stat-value" id="statResolved">0</div>
+                <div style="font-size: 11.5px; color: #059669; font-weight: 700; margin-top: 4px;">SLA Compliant</div>
+              </div>
+            </div>
+
+            <!-- Department Operational Workload Spotlight -->
+            <div style="margin-bottom: 24px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="font-size: 15px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                  <i class="bi bi-grid-3x3-gap-fill" style="color: var(--primary-purple);"></i>
+                  <span>5-Department Operational Workload Breakdown</span>
+                </h3>
+                <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Real-Time Department Status</span>
+              </div>
+              <div class="dept-workload-grid" id="deptWorkloadGrid">
+                <!-- Dynamically populated by app.js -->
+              </div>
+            </div>
+
+            <!-- Two-Column Command Center Section -->
+            <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px;" class="dashboard-command-grid">
+              
+              <!-- Left Column: Urgent Attention Queue -->
+              <div class="card-panel" style="margin-bottom: 0;">
+                <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="display: flex; align-items: center; gap: 8px;">
+                    <i class="bi bi-exclamation-diamond-fill" style="color: #dc2626;"></i>
+                    <span>Urgent Action Items Queue</span>
+                  </span>
+                  <span class="badge badge-critical" id="urgentQueueCountBadge" style="font-size: 11px;">0 Critical</span>
+                </div>
+                <div style="overflow-x: auto;">
+                  <table class="complaint-table" style="font-size: 12.5px;">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Grievance Type</th>
+                        <th>Location</th>
+                        <th>Priority</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="dashboardUrgentTbody">
+                      <!-- Injected by app.js -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Right Column: Live Activity & Grievance Dispatch Stream -->
+              <div class="card-panel" style="margin-bottom: 0;">
+                <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="display: flex; align-items: center; gap: 8px;">
+                    <i class="bi bi-activity" style="color: var(--primary-purple);"></i>
+                    <span>Live Grievance Activity Stream</span>
+                  </span>
+                  <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);"><i class="bi bi-circle-fill" style="color: #10b981; font-size: 8px;"></i> Live Sync</span>
+                </div>
+                <div class="activity-timeline" id="dashboardActivityFeed">
+                  <!-- Injected by app.js -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- PAGE 2: COMPLAINTS PAGE (TABLE FORMAT) -->
+          <div class="page-view" id="pageComplaints">
+            <div class="card-panel">
+              <div class="card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <i class="bi bi-card-checklist" style="color: var(--primary-purple);"></i>
+                  <span id="complaintsTableTitle">Complaint List</span>
+                </div>
+
+                <!-- Table Controls: Search & Badge -->
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <input type="text" id="searchInput" placeholder="🔍 Search ID, area, category..." style="padding: 6px 12px; font-size: 12.5px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-subtle); color: var(--text-main); width: 220px;">
+                  <span id="currentViewBadge" class="badge badge-open">Zone Officer View</span>
+                </div>
+              </div>
+
+              <div class="table-wrapper">
+                <table class="complaint-table">
+                  <thead>
+                    <tr>
+                      <th>ID Number</th>
+                      <th>Complaint / Department</th>
+                      <th>Area / Ward</th>
+                      <th>SLA Status</th>
+                      <th>Department Status</th>
+                      <th style="text-align: center;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="complaintsTbody">
+                    <!-- Injected by app.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- PAGE 3: MAP PAGE -->
+          <div class="page-view" id="pageMap">
+            <div class="card-panel">
+              <div class="card-title">
+                <i class="bi bi-map-fill" style="color: var(--primary-blue);"></i>
+                <span>Interactive Grievance Location Map (All Complaints)</span>
+              </div>
+              <div id="mapViewContainer"></div>
+            </div>
+          </div>
+
+          <!-- PAGE 4: ANALYTICS PAGE -->
+          <div class="page-view" id="pageAnalytics">
+            <div class="analytics-grid">
+              <!-- Graph 1: Complaint Rate Graph -->
+              <div class="card-panel">
+                <div class="card-title" style="font-size: 15px;">
+                  <i class="bi bi-graph-up" style="color: var(--primary-blue);"></i>
+                  <span>Complaint Rate Graph</span>
+                </div>
+                <div class="chart-box">
+                  <canvas id="chartRate"></canvas>
+                </div>
+              </div>
+
+              <!-- Graph 2: Complaint Overview -->
+              <div class="card-panel">
+                <div class="card-title" style="font-size: 15px;">
+                  <i class="bi bi-bar-chart-fill" style="color: var(--status-open-text);"></i>
+                  <span>Complaint Overview (by Dept)</span>
+                </div>
+                <div class="chart-box">
+                  <canvas id="chartOverview"></canvas>
+                </div>
+              </div>
+
+              <!-- Graph 3: Resolution Overview -->
+              <div class="card-panel">
+                <div class="card-title" style="font-size: 15px;">
+                  <i class="bi bi-pie-chart-fill" style="color: var(--status-resolved-text);"></i>
+                  <span>Resolution Overview (Opened vs Resolved)</span>
+                </div>
+                <div class="chart-box">
+                  <canvas id="chartResolution"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <!-- COMPLAINT DETAILS MODAL -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal-content" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="bi bi-file-earmark-person-fill" style="color: var(--primary-blue);"></i> Complaint Details & Lifecycle</h3>
+        <button class="icon-btn" id="closeDetailModalBtn"><i class="bi bi-x-lg"></i></button>
+      </div>
+
+      <!-- Lifecycle Stepper Bar -->
+      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); padding: 12px 16px; border-radius: var(--radius-lg); margin-bottom: 20px; font-size: 11.5px; font-weight: 700; color: var(--text-muted);">
+        <span id="stepReceived" style="color: var(--primary-blue);"><i class="bi bi-whatsapp"></i> Received</span>
+        <i class="bi bi-chevron-right"></i>
+        <span id="stepProcessed" style="color: var(--primary-blue);"><i class="bi bi-cpu-fill"></i> AI Processed</span>
+        <i class="bi bi-chevron-right"></i>
+        <span id="stepForwarded"><i class="bi bi-send-fill"></i> Forwarded</span>
+        <i class="bi bi-chevron-right"></i>
+        <span id="stepResponse"><i class="bi bi-chat-dots-fill"></i> Dept Response</span>
+        <i class="bi bi-chevron-right"></i>
+        <span id="stepResolved"><i class="bi bi-check-circle-fill"></i> Resolved</span>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label">Complaint ID</span>
+          <span class="detail-value" id="detailRefId" style="color: var(--primary-blue); font-weight: 800;">JDS-001</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Workflow Status</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div id="detailStatusBadge" style="display: inline-block;"></div>
+            <span id="detailSolvedMarker" class="symbol-cross">✕</span>
+          </div>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Complaint / Department</span>
+          <span class="detail-value" id="detailCategory">Pothole — Road Dept.</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Severity Level</span>
+          <span id="detailSeverity" class="badge badge-high">High</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Area / Location</span>
+          <span class="detail-value" id="detailArea">Anna Nagar</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">GPS Coordinates</span>
+          <span class="detail-value" id="detailCoords">13.0850, 80.2100</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <span class="detail-label">Original Complaint / Transcribed Voice Text</span>
+        <div style="padding: 10px 14px; background: var(--bg-subtle); border-radius: var(--radius-md); font-size: 13px; font-style: italic; color: var(--text-main); margin-top: 4px;" id="detailTranscript">
+          "There is a big pothole near Anna Nagar bus stand."
+        </div>
+      </div>
+
+      <!-- PART 1: Individual Complaint Location Map -->
+      <div style="margin-bottom: 16px;">
+        <span class="detail-label"><i class="bi bi-geo-alt-fill" style="color: var(--primary-blue);"></i> Complaint Location Map (Individual View)</span>
+        <div id="modalMapViewContainer" style="height: 180px; width: 100%; border-radius: var(--radius-md); margin-top: 6px; border: 1px solid var(--border-color); background: var(--bg-subtle); z-index: 1;"></div>
+        <div id="modalMapNoLocFallback" style="display: none; padding: 14px; background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; border-radius: var(--radius-md); font-size: 13px; font-weight: 600; margin-top: 6px;">
+          <i class="bi bi-exclamation-triangle-fill"></i> Location Not Available
+        </div>
+      </div>
+
+      <!-- Department Response Input Form -->
+      <div style="margin-bottom: 16px;" id="deptResponseFormSection">
+        <span class="detail-label"><i class="bi bi-pencil-square" style="color: var(--primary-blue);"></i> Enter Department Response</span>
+        <textarea id="deptResponseInput" class="form-input" rows="3" placeholder="Enter official department action/resolution response..." style="margin-top: 4px; resize: vertical;"></textarea>
+        <button class="btn-primary" id="btnSubmitDeptResponse" style="margin-top: 8px; width: auto; font-size: 13px; padding: 8px 16px;">
+          <i class="bi bi-check2-square"></i> Submit Response
+        </button>
+      </div>
+
+      <!-- Department Official Response Display -->
+      <div style="margin-bottom: 20px;" id="deptResponseDisplaySection">
+        <span class="detail-label">Department Official Response</span>
+        <div style="padding: 10px 14px; background: var(--status-resolved-bg); color: var(--status-resolved-text); border-radius: var(--radius-md); font-size: 13px; font-weight: 600; margin-top: 4px;" id="detailDeptResponseText">
+          No response received from department yet.
+        </div>
+      </div>
+
+      <div class="modal-footer-actions" style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
+        <button class="btn-secondary" id="modalCloseBtn">Close</button>
+        <button class="btn-outline" id="modalForwardBtn"><i class="bi bi-send-fill"></i> Send to Department</button>
+        <button class="btn-primary" id="modalMarkSolvedBtn" style="background-color: var(--status-resolved); width: auto; padding: 10px 18px;"><i class="bi bi-check-circle-fill"></i> Mark as Resolved</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS & Chart.js -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- JavaScript Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
